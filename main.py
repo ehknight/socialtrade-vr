@@ -52,11 +52,10 @@ def parse_json():
         unit_theta = 360/min(app.config["MAX_FEEDS"],len(data["entries"]))
         num_feeds += 1
         parsed_images = []
-        int_thetas = -1*float(theta[2:-2])
-        pos_x = str(10*cos(radians(int_thetas+unit_theta)))
-        pos_y = str(10*sin(radians(int_thetas+unit_theta)))
-        text_pos_x=str(2.5*cos(radians(int_thetas+11.5))+float(pos_x))
-        text_pos_y=str(2.5*sin(radians(int_thetas+11.5))+float(pos_y))
+        cur_theta = -1*float(theta[2:-2])
+        theta_adj = 10
+        pos_x = str(10*cos(radians(cur_theta+unit_theta+theta_adj)))
+        pos_y = str(10*sin(radians(cur_theta+unit_theta+theta_adj)))
         current_level = ((cur_ind)//app.config["MAX_FEEDS"])
         height_offset = 5
         image_height = str((3/4)+9.25*current_level+height_offset)
@@ -70,9 +69,7 @@ def parse_json():
                         "name":entry["name"],
                         "images":parsed_images,
                         "button_pos":' '.join([pos_x,button_height,pos_y]),
-                        "button_rot":' '.join(["0",str(-1*(int_thetas+unit_theta)),"0"]),
-                        "text_pos":' ' .join([text_pos_x,"0",text_pos_y]),
-                        "text_rot":' '.join(["0",str(int_thetas),"0"]),
+                        "button_rot":' '.join(["0",str(-1*(cur_theta+unit_theta)),"0"]),
                         "image_pos":' '.join(["0",image_height,"0"]),
                         "theta":theta}
         session['current_views'].append(current_view)
@@ -82,13 +79,21 @@ def url_from_id(id):
     return 'http://slopeofhope.com/socialtrade/app/stacks/substacks_'+str(id)+'.json'
 
 
-@app.route('/static/skybox.jpg')
+@app.route('/static/sky.jpg')
 def skybox():
-    return send_from_directory('static','skybox.jpg')
+    return send_from_directory('static','sky.jpeg')
 
 @app.route('/static/aframe.min.js')
 def aframe():
     return send_from_directory('static','aframe.min.js')
+
+@app.route('/static/sand.jpg')
+def sand():
+    return send_from_directory('static','sand.jpg')
+
+@app.route('/static/back-button.jpg')
+def backbutton():
+    return send_from_directory('static','back-button.jpg')
 
 @app.route('/id/<viewpath>')
 def new_view(viewpath):
