@@ -9,21 +9,41 @@
   <script src="https://raw.githubusercontent.com/gasolin/aframe-href-component/gh-pages/build.js"></script>
   <script src="https://rawgit.com/bryik/aframe-bmfont-text-component/master/dist/aframe-bmfont-text-component.min.js"></script>
   <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.1.0/dist/aframe-extras.min.js"></script>
+  <script src="https://rawgit.com/ngokevin/aframe-animation-component/master/dist/aframe-animation-component.min.js"></script>
+  <script src="https://rawgit.com/ngokevin/aframe-text-component/master/dist/aframe-text-component.min.js"></script>
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <script>
+    AFRAME.registerComponent("move",{
+    schema : {
+      target : { type : "selector"},
+      position : {type : "string"}
+    },
+    init : function(){
+      this.el.addEventListener("click",function(){
+                var animation = document.createElement("a-animation");
+                animation.setAttribute("attribute","position");
+                animation.setAttribute("to",this.data.position);
+                animation.setAttribute("dur","1000");
+                animation.setAttribute("repeat","0");
+                this.data.target.appendChild(animation);
+      }.bind(this));
+    }
+    });
+  </script>
 </head>
 
 <body>
   <a-scene>
     <a-assets>
-      <img id="sky" src="/static/sky.jpg">
+      <img id="sky" src="/static/sky.png">
       <img id="ground" src="/static/sand.jpg">
       <img id="back-button" src="/static/back-button.jpg">
     </a-assets>
 
-    <a-ocean width="200" depth="200" density="40" opacity="1" position="0 -0.4 0"></a-ocean>
     <a-sky src="#sky" position="0 -200 0"></a-sky>
-    <a-sphere src="#ground" radius="5" scale="4 0.3 4" position="0 -1 0"></a-sphere>
+    <a-grid></a-grid>
     
-    <a-entity position="0 2.2 4">
+    <a-entity id="user" position="0 2.2 4">
       <a-entity id="cursor" camera universal-controls position="0 2 0">
         <a-entity position="0 0 -3" scale="0.3 0.3 0.3" geometry="primitive: ring; radiusOuter: 0.30;
 				  radiusInner: 0.20;" material="color: #3f43ad; shader: flat" cursor="maxDistance: 100;">
@@ -38,23 +58,27 @@
     <a-light color="#ddf" position="3 10 -10" distance="50" intensity="0.4" type="point"></a-light>
     <a-sphere id="backbutton" src="#back-button" radius="1" position=" 0 0.47 0" rotation="-79.6 -8.02 -13.7"></a-sphere>
     <script>
-      document.querySelector("#backbutton").addEventListener('click',function(){window.history.back();});
+      document.querySelector("#backbutton").addEventListener('click',function(){location.href=document.referrer;});
     </script>
 
     {% for view in views %}
-      <a-curvedimage id="{{view['id']+'img'}}" src="{{view['images'][0]}}" position="{{view['image_pos']}}" height="6" radius="10"
+      <a-curvedimage id="{{view['id']+'img'}}" src="{{view['image']}}" position="{{view['image_pos']}}" height="6" radius="10"
         theta-length="50" rotation="{{view['theta']}}">
       </a-curvedimage>
       <a-entity id="{{view['id']+'button'}}" geometry="primitive: box" rotation="{{view['button_rot']}}" material="color: white"
-        scale="1 2 7" position="{{view['button_pos']}}">
-        <a-entity bmfont-text="text: {{view['name']}}; align: center; color: black;" scale="0.5 1.5 2.5" position="-0.51 -0.1 -1.24" rotation="0 270 0"></a-entity>
+        scale="1 2 7" position="{{view['button_pos']}}" move="target:#user;position:0 {{view['button_height']}} 0">
+        <a-entity bmfont-text="text: {{view['name']}}; fnt:/futura.fnt; fntImage:/futura.png; width:800; lineHeight: 60; align: center; color: black;" 
+          scale="0.21 0.72 1.00" position="-0.51 {{view['text_pos_height']}} -0.42" rotation="0 270 0"></a-entity>
       </a-entity>
       <script>
-        document.querySelector("{{view['hash_id']+'button'}}").addEventListener('click',function(){location.href="/id/{{view['id']}}";});
+        document.querySelector("{{view['hash_id']}}button").addEventListener('click',function(){
+            if ("{{view['is_stack']}}"=="True"){
+                document.querySelector("{{view['hash_id']+'button'}}").addEventListener('click',function(){location.href="/id/{{view['id']}}";});
+                return;
+            }
+        });      
       </script> 
     {% endfor %}
   </a-scene>
-
   <body>
-
 </html>
