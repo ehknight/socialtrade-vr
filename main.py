@@ -71,13 +71,14 @@ def create_scene():
 
 def shorten_message(text):
     text = re.sub(re.compile(r'\W+'), r" ", text)
-    if len(text)>92:
-        return text[:88]+'...'
+    sub_length = 83
+    if len(text)>sub_length:
+        return text[:sub_length-3]+'...'
     else:
         return text
 
 def calculate_text_pos_height(text):
-    line_len_list = [-0.12,-0.22,-0.31,-0.4,-0.52,-0.55]
+    line_len_list = [-0.12,-0.22,-0.31,-0.4,-0.4,-0.4]
     lines = len(text)//16
     try:
         return str(line_len_list[lines])
