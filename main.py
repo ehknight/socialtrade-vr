@@ -52,6 +52,14 @@ def futurapng():
 def favicon():
     return send_from_directory('static','favicon.ico')
 
+@app.route('/gear-controls.html')
+def gearcontrols():
+    return send_from_directory('static','gear-controls.html')
+
+@app.route('/vive-controls.html')
+def vivecontrols():
+    return send_from_directory('static','vive-controls.htmls')
+
 def calculate_img_positions(num_images):
     return [(cos(theta),sin(theta)) for theta in range(0,360,360/num_images)]
 
