@@ -9,7 +9,6 @@ import random
 from math import sin, cos, pi, radians
 from itertools import repeat
 from itertools import chain
-from scipy import arange as range
 from collections import deque
 
 app = Flask(__name__)
@@ -19,6 +18,11 @@ socketio = SocketIO(app)
 app.secret_key='pasta_elephant_green_leaf_shoe'
 app.config['MAX_FEEDS']=7   
 app.config['IMAGE_HEIGHT']=7
+
+def range(x, y, jump):
+  while x < y:
+    yield x
+    x += jump
 
 @app.route('/static/sky.png')
 def skybox():
@@ -202,27 +206,6 @@ def connect_and_send_views():
 @socketio.on('disconnect')
 def disconnect():
     print("Client disconnected")
-
-# @app.route('/id/<viewpath>')
-# def new_view(viewpath):
-#     global session
-#     try:
-#         session['previous']
-#         session['previous']=session['json_feed']
-#     except KeyError:
-#         session['previous']=url_from_id(0)
-#     cleaned_id = int(viewpath[4:])
-#     print("cleaned id:")
-#     print(cleaned_id)
-#     session['id'] = cleaned_id     
-#     session['json_feed']=url_from_id(cleaned_id)
-#     session['current_views']=[]
-#     parse_json(session['json_feed'])
-#     img_width = calculate_image_widths(len(session['current_views']))
-#     return render_template('index.html',
-#                            width=img_width,
-#                            height=img_width*(2/3),
-#                            views=session['current_views'])
 
 @app.route('/')
 def main():

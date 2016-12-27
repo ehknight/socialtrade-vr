@@ -60,6 +60,9 @@
     <a-sphere id="backbutton" src="#back-button" radius="1" position=" 0 0.47 0" rotation="-79.6 -8.02 -13.7"></a-sphere>
     <script>
       $(document).ready(function(){
+        //cors enable all:
+        header('content-type: application/json; charset=utf-8');
+        header("access-control-allow-origin: *");
         //connect to the socket server.
         // $("#scene").append("\<script\>var socket = io.connect('http://' + document.domain + ':' + location.port);\<\/script\>")
         var socket = io.connect('http://' + document.domain + ':' + location.port);
