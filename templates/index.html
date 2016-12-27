@@ -6,12 +6,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1">
   <title>SocialTrade VR</title>
   <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>  <script src="/static/aframe.min.js"></script>
-  <script src="https://raw.githubusercontent.com/gasolin/aframe-href-component/gh-pages/build.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+  <script src="/static/aframe.min.js"></script>
+  <!-- TODO: Move all rawgits to cdn.rawgit !-->
   <script src="https://rawgit.com/bryik/aframe-bmfont-text-component/master/dist/aframe-bmfont-text-component.min.js"></script>
   <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.1.0/dist/aframe-extras.min.js"></script>
   <script src="https://rawgit.com/ngokevin/aframe-animation-component/master/dist/aframe-animation-component.min.js"></script>
-  <script src="https://rawgit.com/ngokevin/aframe-text-component/master/dist/aframe-text-component.min.js"></script>
+  <script src="https://rawgit.com/bryik/aframe-vive-cursor-component/master/dist/aframe-vive-cursor-component.min.js"></script> 
   <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
   <script>
     AFRAME.registerComponent("move",{
@@ -43,7 +44,8 @@
 
     <a-sky src="#sky" position="0 -200 0"></a-sky>
     <a-grid></a-grid>
-
+    <a-entity vive-controls="hand: left"></a-entity>
+    <a-entity vive-controls="hand: right" vive-cursor></a-entity>
     <a-entity id="user" position="0 2.2 4">
       <a-entity id="cursor" camera universal-controls position="0 2 0">
         <a-entity position="0 0 -3" scale="0.3 0.3 0.3" geometry="primitive: ring; radiusOuter: 0.30;
