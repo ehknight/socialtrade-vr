@@ -7,9 +7,11 @@ import re
 import requests
 import random
 from math import sin, cos, pi, radians
-from itertools import repeat
-from itertools import chain
+from itertools import repeat, chain
 from collections import deque
+import threading
+from gevent import monkey, sleep
+monkey.patch_all()
 
 app = Flask(__name__)
 CORS(app)
@@ -18,6 +20,8 @@ socketio = SocketIO(app)
 app.secret_key='pasta_elephant_green_leaf_shoe'
 app.config['MAX_FEEDS']=7   
 app.config['IMAGE_HEIGHT']=7
+thread = threading.Thread()
+thread_stop_event = threading.Event()
 
 def range(x, y, jump):
   while x < y:
@@ -174,6 +178,19 @@ def parse_json(url):
         session['current_views'].append(current_view)
     return True
 
+class ViveChecker(threading.Thread):
+    def __init__(self):
+        self.delay = 1
+        super(ViveChecker, self).__init__()
+ 
+    def vive_connected(self):
+        while not thread_stop_event.isSet():
+            socketio.emit('check_vive_connected', broadcast=True)
+            sleep(self.delay)
+    
+    def run(self):
+        self.vive_connected()
+
 def receive_sent_views(data):
     global session
     viewpath = data
@@ -207,7 +224,12 @@ def go_back():
 
 @socketio.on('connect')
 def connect_and_send_views():
-    global session
+    global session, thread
+    if not thread.isAlive():
+        print("starting vive checker")
+        thread = ViveChecker()
+        thread.start()
+    print("made it to next one")
     session['previous_id']='view0'
     session['url_deque'] = deque(['view0'])
     receive_sent_views('view0')
