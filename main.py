@@ -1,19 +1,52 @@
 from flask import Flask, session, render_template, request, send_from_directory
-import requests
-from math import sin, cos, pi, radians
+from flask_cors import CORS
+from flask.ext.socketio import SocketIO, emit
+
 import os
-from scipy import arange as range
+import re
+import requests
+import random
+from math import sin, cos, pi, radians
 from itertools import repeat
 from itertools import chain
-import re
-from flask_cors import CORS
-import random
+from scipy import arange as range
+from collections import deque
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app)
+
 app.secret_key='pasta_elephant_green_leaf_shoe'
 app.config['MAX_FEEDS']=7   
 app.config['IMAGE_HEIGHT']=7
+
+@app.route('/static/sky.png')
+def skybox():
+    return send_from_directory('static','sky-tron.png')
+
+@app.route('/static/aframe.min.js')
+def aframe():
+    return send_from_directory('static','aframe.min.js')
+
+@app.route('/static/sand.jpg')
+def sand():
+    return send_from_directory('static','sand.jpg')
+
+@app.route('/static/back-button.jpg')
+def backbutton():
+    return send_from_directory('static','back-button.jpg')
+
+@app.route('/futura.fnt')
+def futura():
+    return send_from_directory('static','futura.fnt')
+
+@app.route('/futura.png')
+def futurapng():
+    return send_from_directory('static','futura.png')
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('static','favicon.ico')
 
 def calculate_img_positions(num_images):
     return [(cos(theta),sin(theta)) for theta in range(0,360,360/num_images)]
@@ -48,13 +81,18 @@ def calculate_text_pos_height(text):
         print(lines)
         raise ValueError
 
+def url_from_id(id, stack=True):
+    if stack:
+        return 'http://slopeofhope.com/socialtrade/app/stacks/substacks_'+str(id)+'.json'
+    else:
+        return 'http://slopeofhope.com/socialtrade/app/tagged-items/stack_'+str(id)+'.json'
 
-def parse_json():
+def parse_json(url):
     global session
     is_stack = True
     session['current_views']=[]
     print("started response")
-    response = requests.get(session['json_feed'])
+    response = requests.get(url)
     data = response.json()
     print("finished response")
     num_feeds = 0
@@ -62,9 +100,9 @@ def parse_json():
     if len(data["entries"])==0:
         # not a stack
         is_stack = False
-        session['json_feed'] = url_from_id(session['id'], stack=False)
-        print(session['json_feed'])
-        response = requests.get(session['json_feed'])
+        url = url_from_id(session['id'], stack=False)
+        print(url)
+        response = requests.get(url)
         print("response:")
         print(response)
         data = response.json()
@@ -121,71 +159,75 @@ def parse_json():
                         "theta":theta,
                         "is_stack":is_stack}
         session['current_views'].append(current_view)
-
-
     return True
 
-def url_from_id(id, stack=True):
-    if stack:
-        return 'http://slopeofhope.com/socialtrade/app/stacks/substacks_'+str(id)+'.json'
-    else:
-        return 'http://slopeofhope.com/socialtrade/app/tagged-items/stack_'+str(id)+'.json'
-
-
-@app.route('/static/sky.png')
-def skybox():
-    return send_from_directory('static','sky-tron.png')
-
-@app.route('/static/aframe.min.js')
-def aframe():
-    return send_from_directory('static','aframe.min.js')
-
-@app.route('/static/sand.jpg')
-def sand():
-    return send_from_directory('static','sand.jpg')
-
-@app.route('/static/back-button.jpg')
-def backbutton():
-    return send_from_directory('static','back-button.jpg')
-
-@app.route('/futura.fnt')
-def futura():
-    return send_from_directory('static','futura.fnt')
-
-@app.route('/futura.png')
-def futurapng():
-    return send_from_directory('static','futura.png')
-
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory('static','favicon.ico')
-
-@app.route('/id/<viewpath>')
-def new_view(viewpath):
+def receive_sent_views(data):
     global session
-    try:
-        session['previous']
-        session['previous']=session['json_feed']
-    except KeyError:
-        session['previous']=url_from_id(0)
+    viewpath = data
+    print(viewpath)
     cleaned_id = int(viewpath[4:])
     print("cleaned id:")
     print(cleaned_id)
     session['id'] = cleaned_id     
     session['json_feed']=url_from_id(cleaned_id)
     session['current_views']=[]
-    parse_json()
+    parse_json(session['json_feed'])
     img_width = calculate_image_widths(len(session['current_views']))
-    return render_template('index.html',
-                           width=img_width,
-                           height=img_width*(2/3),
-                           views=session['current_views'])
+    socketio.emit('receive_views', session['current_views'])
+
+@socketio.on('send_view') # when button is clicked...
+def on_button_click(send_view):
+    global session
+    session['url_deque'].append(send_view['data'])
+    print("received click")
+    return receive_sent_views(send_view['data'])
+
+@socketio.on('go_back')
+def go_back():
+    global session
+    try:
+        session['previous_id'] = session['url_deque'].pop()
+    except:
+        session['url_deque'] = deque(['view0'])
+        session['previous_id'] = 'view0'
+    return receive_sent_views(session['url_deque'])
+
+@socketio.on('connect')
+def connect_and_send_views():
+    global session
+    session['previous_id']='view0'
+    session['url_deque'] = deque(['view0'])
+    receive_sent_views('view0')
+
+@socketio.on('disconnect')
+def disconnect():
+    print("Client disconnected")
+
+# @app.route('/id/<viewpath>')
+# def new_view(viewpath):
+#     global session
+#     try:
+#         session['previous']
+#         session['previous']=session['json_feed']
+#     except KeyError:
+#         session['previous']=url_from_id(0)
+#     cleaned_id = int(viewpath[4:])
+#     print("cleaned id:")
+#     print(cleaned_id)
+#     session['id'] = cleaned_id     
+#     session['json_feed']=url_from_id(cleaned_id)
+#     session['current_views']=[]
+#     parse_json(session['json_feed'])
+#     img_width = calculate_image_widths(len(session['current_views']))
+#     return render_template('index.html',
+#                            width=img_width,
+#                            height=img_width*(2/3),
+#                            views=session['current_views'])
 
 @app.route('/')
 def main():
-    global session
-    return new_view('view0')
+    return render_template('index.html')
 
 if __name__=='__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0',port=port, debug=True)
+    socketio.run(app, host='0.0.0.0',port=port, debug=True)
