@@ -160,8 +160,8 @@ def parse_json(url):
         parsed_images = []
         cur_theta = -1*float(theta[2:-2])
         theta_adj = 10
-        pos_x = str(10*cos(radians(cur_theta+unit_theta+theta_adj)))
-        pos_y = str(10*sin(radians(cur_theta+unit_theta+theta_adj)))
+        pos_x = str(10*cos(radians(cur_theta+unit_theta+theta_adj+50/4)))
+        pos_y = str(10*sin(radians(cur_theta+unit_theta+theta_adj+50/4)))
         current_level = ((cur_ind)//app.config["MAX_FEEDS"])
         height_offset = 5
         image_height = str((3/4)+9.25*current_level+height_offset)
@@ -192,7 +192,7 @@ def parse_json(url):
                         "image":image,
                         "button_height": person_move,
                         "button_pos":' '.join([pos_x,button_height,pos_y]),
-                        "button_rot":' '.join(["0",str(-1*(cur_theta+unit_theta)),"0"]),
+                        "button_rot":' '.join(["0",str(-1*(cur_theta+unit_theta+50/2)),"0"]),
                         "image_pos":' '.join(["0",image_height,"0"]),
                         "theta":theta,
                         "level":str(current_level),
