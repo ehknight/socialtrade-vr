@@ -21,6 +21,29 @@ app.config['IMAGE_HEIGHT']=7
 thread = threading.Thread()
 thread_stop_event = threading.Event()
 
+# CORS handling from http://coalkids.github.io/flask-cors.html
+@app.before_request
+def option_autoreply():
+    if request.method == 'OPTIONS':
+        resp = app.make_default_options_response()
+        headers = None
+        if 'ACCESS_CONTROL_REQUEST_HEADERS' in request.headers:
+            headers = request.headers['ACCESS_CONTROL_REQUEST_HEADERS']
+        h = resp.headers
+        h['Access-Control-Allow-Origin'] = request.headers['Origin']
+        h['Access-Control-Allow-Methods'] = request.headers['Access-Control-Request-Method']
+        h['Access-Control-Max-Age'] = "10"
+        if headers is not None:
+            h['Access-Control-Allow-Headers'] = headers
+        return resp
+
+@app.after_request
+def set_allow_origin(resp):
+    h = resp.headers
+    if request.method != 'OPTIONS' and 'Origin' in request.headers:
+        h['Access-Control-Allow-Origin'] = request.headers['Origin']
+    return resp
+
 def range(x, y, jump):
   while x < y:
     yield x
@@ -150,8 +173,6 @@ def parse_json(url):
             for img_url in entry["preview"]:
                 parsed_url = img_url[:-2]+'_l'
                 parsed_url = re.sub(r'https://',r'http://',parsed_url)
-                # CORS proxy:
-                parsed_url = 'http://localhost:3000/'+parsed_url[24:]
                 parsed_images.append(parsed_url)
             image = random.choice(parsed_images)
             str_id = str(entry["id"])
