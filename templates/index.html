@@ -49,10 +49,12 @@
       <img id="ground" src="/static/sand.jpg">
       <img id="back-button" src="/static/back-button.jpg">
     </a-assets>
-    <a-entity id="vive-controls-switch">\
-        <a-entity vive-controls="hand: left"></a-entity>\
-        <a-entity vive-controls="hand: right" vive-cursor></a-entity>\
+    <a-entity id="user" position="0 2.2 4">
+      <a-entity id="vive-controls-switch">\
+          <a-entity vive-controls="hand: left"></a-entity>\
+          <a-entity vive-controls="hand: right" vive-cursor></a-entity>\
       </a-entity>
+    </a-entity>
     <script>
       if (!window.current_level) {
         window.current_level = "0"
