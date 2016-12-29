@@ -182,14 +182,15 @@ def url_from_id(id, stack=True):
 def parse_json(url):
     global connections
     is_stack = True
-    connections[request.sid].session['current_views']=[]
+    cur_sid = request.sid
+    connections[cur_sid].session['current_views']=[]
     response = requests.get(url)
     data = response.json()
     num_feeds = 0
     if len(data["entries"])==0:
         # not a stack
         is_stack = False
-        url = url_from_id(connections[request.sid].session['id'], stack=False)
+        url = url_from_id(connections[cur_sid].session['id'], stack=False)
         response = requests.get(url)
         data = response.json()
         num_feeds = 0
@@ -232,6 +233,10 @@ def parse_json(url):
                 text_thetas.previous()
                 continue
         name = shorten_message(name)
+        if not is_stack:
+            sort_index = str(time_parse(entry['item']['posted_on']))
+        else:
+            sort_index = name
         current_view = {"id":"view"+str_id,
                         "hash_id":"#view"+str_id,
                         "name":name,
@@ -243,8 +248,11 @@ def parse_json(url):
                         "image_pos":' '.join(["0",image_height,"0"]),
                         "theta":theta,
                         "level":str(current_level+1),
-                        "is_stack":is_stack}
-        connections[request.sid].session['current_views'].append(current_view)
+                        "is_stack":is_stack,
+                        "sort_index":sort_index}
+        connections[cur_sid].session['current_views'].append(current_view)
+    connections[cur_sid].session['current_views'] = \
+            sorted(connections[cur_sid].session['current_views'], key=lambda item:item['sort_index'], reverse=False)
     return True
 
 class ViveChecker(threading.Thread):
