@@ -132,7 +132,7 @@ def calculate_image_widths(num_images):
     return (2*pi)/(num_images*5)
 
 def shorten_message(text):
-    text = re.sub(re.compile(r'[\s\s]+'), r" ", text)
+    text = re.sub(re.compile(r'[\s]+'), r" ", text)
     sub_length = 83
     if len(text)>sub_length:
         text = text[:sub_length-3]+'...'
