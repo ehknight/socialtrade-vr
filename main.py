@@ -1,14 +1,17 @@
-from flask import Flask, session, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory
 from flask_socketio import SocketIO, emit
 
 import os
 import re
 import requests
 import random
+import threading
+from html import escape as html_escape
 from math import sin, cos, pi, radians
 from itertools import repeat, chain
 from collections import deque
-import threading
+from dateutil.parser import parse as time_parse
+
 from gevent import monkey, sleep
 monkey.patch_all()
 
@@ -20,12 +23,13 @@ app.config['MAX_FEEDS']=7
 app.config['IMAGE_HEIGHT']=7
 thread = threading.Thread()
 thread_stop_event = threading.Event()
-connections={}
+connections = dict()
 
 class Connection(object):
     def __init__(self, sid):
         self.sid = sid
         self.connected = True
+        self.session = dict()
 
     def emit(self, event, data):
         socketio.emit(event, data, room=self.sid)
@@ -97,27 +101,44 @@ def vivecontrols():
 def calculate_img_positions(num_images):
     return [(cos(theta),sin(theta)) for theta in range(0,360,360/num_images)]
 
-def calculate_img_theta(num_images):
-    return chain.from_iterable(repeat((["0 "+str(x)+" 0" for x in range(
-                                  0,360,360/num_images)])))
+class ThetaIterator(object):
+    def __init__(self, num_images):
+        self.num_images = num_images
+        self.thetas = ["0 "+str(x)+" 0" for x in range(0,360,360/num_images)]
+        self.index = 0
 
-def calculate_text_thetas():
-    return chain.from_iterable(repeat([150,90,-30,30,90,150]))
+    def next(self):
+        to_return = self.thetas[self.index]
+        self.index = (self.index+1)%len(self.thetas)
+        return to_return
+    
+    def previous(self):
+        self.index = self.index-1
+
+class ThetaTextIterator(object):
+    def __init__(self):
+        self.text_thetas = [150,90,-30,30,90,150]
+        self.index = 0
+    
+    def next(self):
+        to_return = self.text_thetas[self.index]
+        self.index = (self.index+1)%len(self.text_thetas)
+        return to_return
+
+    def previous(self):
+        self.index = self.index-1
 
 def calculate_image_widths(num_images):
     return (2*pi)/(num_images*5)
 
-def create_scene():
-    return render_template(json_feed=session['json_feed'],
-                           previous=session['previous'])
-
 def shorten_message(text):
-    text = re.sub(re.compile(r'\W+'), r" ", text)
+    text = re.sub(re.compile(r'[\s\s]+'), r" ", text)
     sub_length = 83
     if len(text)>sub_length:
-        return text[:sub_length-3]+'...'
+        text = text[:sub_length-3]+'...'
     else:
-        return text
+        text = text
+    return html_escape(text)
 
 def calculate_text_pos_height(text):
     line_len_list = [-0.12,-0.22,-0.31,-0.4,-0.4,-0.4]
@@ -125,8 +146,26 @@ def calculate_text_pos_height(text):
     try:
         return str(line_len_list[lines])
     except:
-        print(lines)
         raise ValueError
+
+class URLContainer(object):
+    def __init__(self):
+        self.urls=list()
+    
+    def append(self, to_append):
+        try:
+            if self.urls[-1]!=to_append:
+                self.urls.append(to_append)
+        except IndexError:
+            self.urls.append(to_append)
+    
+    def pop(self):
+        try:
+            to_pop = self.urls[-1]
+            del self.urls[-1]
+            return to_pop
+        except IndexError:
+            return 'view0'
 
 def url_from_id(id, stack=True):
     if stack:
@@ -135,35 +174,25 @@ def url_from_id(id, stack=True):
         return 'http://slopeofhope.com/socialtrade/app/tagged-items/stack_'+str(id)+'.json'
 
 def parse_json(url):
-    global session
+    global connections
     is_stack = True
-    session['current_views']=[]
-    print("started response")
+    connections[request.sid].session['current_views']=[]
     response = requests.get(url)
     data = response.json()
-    print("finished response")
     num_feeds = 0
-    print(data["entries"])
     if len(data["entries"])==0:
         # not a stack
         is_stack = False
-        url = url_from_id(session['id'], stack=False)
-        print(url)
+        url = url_from_id(connections[request.sid].session['id'], stack=False)
         response = requests.get(url)
-        print("response:")
-        print(response)
         data = response.json()
-        print("finished response")
         num_feeds = 0
-        print(data["entries"])
-        print(len(data["entries"]))
-        thetas = calculate_img_theta(min(app.config["MAX_FEEDS"],len(data["entries"])))
-    thetas = calculate_img_theta(min(app.config["MAX_FEEDS"],len(data["entries"])))
-    text_thetas = calculate_text_thetas()
-    print(thetas)
+        thetas = ThetaIterator(min(app.config["MAX_FEEDS"],len(data["entries"])))
+    thetas = ThetaIterator(min(app.config["MAX_FEEDS"],len(data["entries"])))
+    text_thetas = ThetaTextIterator()
     for cur_ind, entry in enumerate(data["entries"]):
-        theta = next(thetas)
-        text_theta = next(text_thetas)
+        theta = thetas.next()
+        text_theta = text_thetas.next()
         unit_theta = 360/min(app.config["MAX_FEEDS"],len(data["entries"]))
         num_feeds += 1
         parsed_images = []
@@ -188,10 +217,13 @@ def parse_json(url):
         else:
             try:
                 name = entry['item']['description']
-                print(entry['item']['image_url'])
+                date = time_parse(entry['item']['posted_on']).strftime("%m/%d/%y")
+                name = "["+date+"] "+name
                 image = entry['item']['image_url'][:-2]
                 str_id = str(entry['item']['id'])
             except TypeError:
+                thetas.previous()
+                text_thetas.previous()
                 continue
         name = shorten_message(name)
         current_view = {"id":"view"+str_id,
@@ -204,9 +236,9 @@ def parse_json(url):
                         "button_rot":' '.join(["0",str(-1*(cur_theta+unit_theta+50/2)),"0"]),
                         "image_pos":' '.join(["0",image_height,"0"]),
                         "theta":theta,
-                        "level":str(current_level),
+                        "level":str(current_level+1),
                         "is_stack":is_stack}
-        session['current_views'].append(current_view)
+        connections[request.sid].session['current_views'].append(current_view)
     return True
 
 class ViveChecker(threading.Thread):
@@ -216,59 +248,54 @@ class ViveChecker(threading.Thread):
  
     def vive_connected(self):
         while not thread_stop_event.isSet():
-            socketio.emit('check_vive_connected')
+            socketio.emit('check_vive_connected', broadcast=True)
             sleep(self.delay)
     
     def run(self):
         self.vive_connected()
 
 def receive_sent_views(data):
-    global session
+    global connections
     viewpath = data
-    print(viewpath)
     cleaned_id = int(viewpath[4:])
-    print("cleaned id:")
-    print(cleaned_id)
-    session['id'] = cleaned_id
-    session['json_feed']=url_from_id(cleaned_id)
-    session['current_views']=[]
-    parse_json(session['json_feed'])
-    img_width = calculate_image_widths(len(session['current_views']))
+    connections[request.sid].session['id'] = cleaned_id
+    connections[request.sid].session['json_feed']=url_from_id(cleaned_id)
+    connections[request.sid].session['current_views']=[]
+    parse_json(connections[request.sid].session['json_feed'])
+    img_width = calculate_image_widths(len(connections[request.sid].session['current_views']))
     try:
-        connections[request.sid].emit('receive_views', session['current_views'])
+        connections[request.sid].emit('receive_views', connections[request.sid].session['current_views'])
     except KeyError:
         print("ConnectionWarn: Creating new connection")
         connections[request.sid] = Connection(request.sid)
-        connections[request.sid].emit('receive_views', session['current_views'])
+        connections[request.sid].emit('receive_views', connections[request.sid].session['current_views'])
 
 @socketio.on('send_view') # when button is clicked...
 def on_button_click(send_view):
-    global session
-    session['url_deque'].append(send_view['data'])
-    print("received click")
+    connections[request.sid].session['url_container'].append(send_view['data'])
     return receive_sent_views(send_view['data'])
 
 @socketio.on('go_back')
 def go_back():
-    global session
+    global connections
+    cur_sid = request.sid
     try:
-        session['previous_id'] = session['url_deque'].pop()
+        connections[cur_sid].session['previous_id'] = connections[cur_sid].session['url_container'].pop()
     except:
-        session['url_deque'] = deque(['view0'])
-        session['previous_id'] = 'view0'
-    return receive_sent_views(session['url_deque'])
+        connections[cur_sid].session['url_container'] = URLContainer()
+        connections[cur_sid].session['previous_id'] = connections[cur_sid].session['url_container'].pop()
+    return receive_sent_views(connections[cur_sid].session['previous_id'])
 
 @socketio.on('connect')
 def connect_and_send_views():
-    global session, thread, connections
+    global thread, connections
     connections[request.sid] = Connection(request.sid)
     if not thread.isAlive():
         print("starting vive checker")
         thread = ViveChecker()
         thread.start()
-    print("made it to next one")
-    session['previous_id']='view0'
-    session['url_deque'] = deque(['view0'])
+    connections[request.sid].session['previous_id']='view0'
+    connections[request.sid].session['url_container'] = URLContainer()
     receive_sent_views('view0')
 
 @socketio.on('disconnect')
