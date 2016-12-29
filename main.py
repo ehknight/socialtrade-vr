@@ -104,7 +104,7 @@ def calculate_img_positions(num_images):
 class ThetaIterator(object):
     def __init__(self, num_images):
         self.num_images = num_images
-        self.thetas = ["0 "+str(x)+" 0" for x in range(0,360,360/num_images)]
+        self.thetas = ["0 "+str(-1*x)+" 0" for x in range(0,360,360/num_images)]
         self.index = 0
 
     def next(self):
