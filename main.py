@@ -20,6 +20,15 @@ app.config['MAX_FEEDS']=7
 app.config['IMAGE_HEIGHT']=7
 thread = threading.Thread()
 thread_stop_event = threading.Event()
+connections={}
+
+class Connection(object):
+    def __init__(self, sid):
+        self.sid = sid
+        self.connected = True
+
+    def emit(self, event, data):
+        socketio.emit(event, data, room=self.sid)
 
 # CORS handling from http://coalkids.github.io/flask-cors.html
 @app.before_request
@@ -207,7 +216,7 @@ class ViveChecker(threading.Thread):
  
     def vive_connected(self):
         while not thread_stop_event.isSet():
-            socketio.emit('check_vive_connected', broadcast=True)
+            socketio.emit('check_vive_connected')
             sleep(self.delay)
     
     def run(self):
@@ -220,12 +229,17 @@ def receive_sent_views(data):
     cleaned_id = int(viewpath[4:])
     print("cleaned id:")
     print(cleaned_id)
-    session['id'] = cleaned_id     
+    session['id'] = cleaned_id
     session['json_feed']=url_from_id(cleaned_id)
     session['current_views']=[]
     parse_json(session['json_feed'])
     img_width = calculate_image_widths(len(session['current_views']))
-    socketio.emit('receive_views', session['current_views'])
+    try:
+        connections[request.sid].emit('receive_views', session['current_views'])
+    except KeyError:
+        print("ConnectionWarn: Creating new connection")
+        connections[request.sid] = Connection(request.sid)
+        connections[request.sid].emit('receive_views', session['current_views'])
 
 @socketio.on('send_view') # when button is clicked...
 def on_button_click(send_view):
@@ -246,7 +260,8 @@ def go_back():
 
 @socketio.on('connect')
 def connect_and_send_views():
-    global session, thread
+    global session, thread, connections
+    connections[request.sid] = Connection(request.sid)
     if not thread.isAlive():
         print("starting vive checker")
         thread = ViveChecker()
@@ -258,6 +273,10 @@ def connect_and_send_views():
 
 @socketio.on('disconnect')
 def disconnect():
+    try:
+        del connections[request.sid]
+    except KeyError:
+        print("ConnectionWarn: Deleting connection that never exsisted")
     print("Client disconnected")
 
 @app.route('/')
