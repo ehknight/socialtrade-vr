@@ -1,6 +1,5 @@
 from flask import Flask, session, render_template, request, send_from_directory
-from flask_cors import CORS
-from flask.ext.socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit
 
 import os
 import re
@@ -14,7 +13,6 @@ from gevent import monkey, sleep
 monkey.patch_all()
 
 app = Flask(__name__)
-CORS(app)
 socketio = SocketIO(app)
 
 app.secret_key='pasta_elephant_green_leaf_shoe'
@@ -150,8 +148,10 @@ def parse_json(url):
         if is_stack:
             name = entry['name']
             for img_url in entry["preview"]:
-                parsed_url = img_url[:-2] # remove "_l"
+                parsed_url = img_url[:-2]+'_l'
                 parsed_url = re.sub(r'https://',r'http://',parsed_url)
+                # CORS proxy:
+                parsed_url = 'http://localhost:3000/'+parsed_url[24:]
                 parsed_images.append(parsed_url)
             image = random.choice(parsed_images)
             str_id = str(entry["id"])
@@ -174,6 +174,7 @@ def parse_json(url):
                         "button_rot":' '.join(["0",str(-1*(cur_theta+unit_theta)),"0"]),
                         "image_pos":' '.join(["0",image_height,"0"]),
                         "theta":theta,
+                        "level":str(current_level),
                         "is_stack":is_stack}
         session['current_views'].append(current_view)
     return True
