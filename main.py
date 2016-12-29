@@ -162,8 +162,14 @@ class URLContainer(object):
     def pop(self):
         try:
             to_pop = self.urls[-1]
-            del self.urls[-1]
-            return to_pop
+            if to_pop != sel.urls[-2]:
+                del self.urls[-1]
+                return to_pop
+            else:
+                del self.urls[-1]
+                to_pop = self.urls[-2]
+                del self.urls[-2]
+                return to_pop
         except IndexError:
             return 'view0'
 
