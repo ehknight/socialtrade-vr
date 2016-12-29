@@ -142,7 +142,7 @@ def shorten_message(text):
 
 def calculate_text_pos_height(text):
     line_len_list = [-0.12,-0.22,-0.31,-0.4,-0.4,-0.4]
-    lines = len(text)//16
+    lines = len(text)//20
     try:
         return str(line_len_list[lines])
     except:
