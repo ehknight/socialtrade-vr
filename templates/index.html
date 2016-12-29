@@ -19,10 +19,31 @@
     schema : {
       target : { type : "selector"},
       position : {type : "string"},
-      level: {type: "string"}
+      level : {type: "string"}
     },
     init : function(){
       this.el.addEventListener("click",function(){
+        cur_scale = this.el.getAttribute("scale")
+        console.log(cur_scale)
+        console.log(this.el)
+        if (cur_scale.x==1 && cur_scale.y==2 && cur_scale.z==7) {
+          var clicked_animation_1 = document.createElement("a-animation");
+          clicked_animation_1.setAttribute("attribute","scale");
+          clicked_animation_1.setAttribute("from","1 2 7")
+          clicked_animation_1.setAttribute("to","1.2 2.4 8.4");
+          clicked_animation_1.setAttribute("dur","200")
+          clicked_animation_1.setAttribute("repeat","0");
+          this.el.appendChild(clicked_animation_1)
+
+          var clicked_animation_2 = document.createElement("a-animation");
+          clicked_animation_2.setAttribute("begin", "200")
+          clicked_animation_2.setAttribute("attribute","scale");
+          clicked_animation_2.setAttribute("from","1.2 2.4 8.4");
+          clicked_animation_2.setAttribute("to","1 2 7");
+          clicked_animation_2.setAttribute("dur","200")
+          clicked_animation_2.setAttribute("repeat","0");
+          this.el.appendChild(clicked_animation_2)
+        }
         if (window.current_level != this.data.level) {
           console.log("activated animation")
           console.log(this.data.level)
@@ -71,7 +92,7 @@
                           </a-entity>'
     </script>
     <a-sky src="#sky" position="0 -200 0"></a-sky>
-    <a-grid move='target:#user;position:0 0 0;level:0;'></a-grid>
+    <a-grid width="200" height="200" move='target:#user;position:0 0 0;level:0;'></a-grid>
 
     <a-light type="ambient" color="#ccc"></a-light>
     <a-light color="#ddf" distance="100" intensity="0.4" type="point"></a-light>
