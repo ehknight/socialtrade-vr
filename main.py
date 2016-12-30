@@ -74,10 +74,21 @@ def aframe():
 def sand():
     return send_from_directory('static','sand.jpg')
 
+@app.route('/static/next.png')
+def next_img():
+    return send_from_directory('static','next_page.png')
+
 @app.route('/static/back-button.jpg')
 def backbutton():
     return send_from_directory('static','back-button.jpg')
 
+@app.route('/static/button_click.mp3')
+def button_click_mp3():
+    return send_from_directory('static','button_press.mp3')
+
+@app.route('/static/whoosh.mp3')
+def whooshmp3():
+    return send_from_directory('static','whoosh.mp3')
 @app.route('/futura.fnt')
 def futura():
     return send_from_directory('static','futura.fnt')
@@ -96,7 +107,19 @@ def gearcontrols():
 
 @app.route('/vive-controls.html')
 def vivecontrols():
-    return send_from_directory('static','vive-controls.htmls')
+    return send_from_directory('static','vive-controls.html')
+
+@app.route('/static/main.js')
+def mainjs():
+    return send_from_directory('static','main.js')
+
+@app.route('/static/controls.js')
+def controlsjs():
+    return send_from_directory('static','controls.js')
+
+@app.route('/static/move_animations.js')
+def movejs():
+    return send_from_directory('static','move_animations.js')
 
 def calculate_img_positions(num_images):
     return [(cos(theta),sin(theta)) for theta in range(0,360,360/num_images)]
@@ -160,31 +183,48 @@ class URLContainer(object):
             self.urls.append(to_append)
     
     def pop(self):
+        print(self.urls)
         try:
+            del self.urls[-1]
             to_pop = self.urls[-1]
-            if to_pop != sel.urls[-2]:
+            try:
+                if to_pop != self.urls[-2]:
+                    del self.urls[-1]
+                    return to_pop
+                else:
+                    del self.urls[-1]
+                    to_pop = self.urls[-1]
+                    del self.urls[-1]
+                    return to_pop
+            except IndexError:
                 del self.urls[-1]
-                return to_pop
-            else:
-                del self.urls[-1]
-                to_pop = self.urls[-2]
-                del self.urls[-2]
                 return to_pop
         except IndexError:
             return 'view0'
 
 def url_from_id(id, stack=True):
-    if stack:
-        return 'http://slopeofhope.com/socialtrade/app/stacks/substacks_'+str(id)+'.json'
-    else:
-        return 'http://slopeofhope.com/socialtrade/app/tagged-items/stack_'+str(id)+'.json'
+    try:
+        print("trying!")
+        if "?" not in id:
+            raise ValueError
+        stack_id, page_start = str(id).split("?")
+        return 'http://slopeofhope.com/socialtrade/app/tagged-items/stack_'+stack_id+'.json'+"?"+page_start
+    except ValueError:
+        if stack:
+            return 'http://slopeofhope.com/socialtrade/app/stacks/substacks_'+str(id)+'.json'
+        else:
+            return 'http://slopeofhope.com/socialtrade/app/tagged-items/stack_'+str(id)+'.json'
 
 def parse_json(url):
+    print("vvvvvvvvvvvvvvvvv")
+    print(url)
+    print("^^^^^^^^^^^^^^^^^")
     global connections
     is_stack = True
     cur_sid = request.sid
     connections[cur_sid].session['current_views']=[]
     response = requests.get(url)
+
     data = response.json()
     num_feeds = 0
     if len(data["entries"])==0:
@@ -196,8 +236,10 @@ def parse_json(url):
         num_feeds = 0
         thetas = ThetaIterator(min(app.config["MAX_FEEDS"],len(data["entries"])))
     thetas = ThetaIterator(min(app.config["MAX_FEEDS"],len(data["entries"])))
+    iters = 0
     text_thetas = ThetaTextIterator()
     for cur_ind, entry in enumerate(data["entries"]):
+        iters += 1
         theta = thetas.next()
         text_theta = text_thetas.next()
         unit_theta = 360/min(app.config["MAX_FEEDS"],len(data["entries"]))
@@ -212,7 +254,10 @@ def parse_json(url):
         image_height = str((3/4)+9.25*current_level+height_offset)
         button_height = str(1/2+5+9.25*(current_level-1)+height_offset)
         person_move = str(2.2+1/2+5+9.25*(current_level-1)+height_offset)
-       
+        try:
+           entry['name']
+        except KeyError:
+            is_stack = False
         if is_stack:
             name = entry['name']
             for img_url in entry["preview"]:
@@ -251,6 +296,40 @@ def parse_json(url):
                         "is_stack":is_stack,
                         "sort_index":sort_index}
         connections[cur_sid].session['current_views'].append(current_view)
+
+    if not is_stack and (iters == 50):
+        cur_ind += 1
+        theta = thetas.next()
+        text_theta = text_thetas.next()
+        unit_theta = 360/min(app.config["MAX_FEEDS"],len(data["entries"]))
+        num_feeds += 1
+        cur_theta = -1*float(theta[2:-2])
+        pos_x = str(10*cos(radians(cur_theta+unit_theta+theta_adj+50/4)))
+        pos_y = str(10*sin(radians(cur_theta+unit_theta+theta_adj+50/4)))
+        current_level = ((cur_ind)//app.config["MAX_FEEDS"])
+        image_height = str((3/4)+9.25*current_level+height_offset)
+        button_height = str(1/2+5+9.25*(current_level-1)+height_offset)
+        person_move = str(2.2+1/2+5+9.25*(current_level-1)+height_offset)
+        try:
+            str_id = re.findall(r"_\d+",url)[-1][1:]+"?start="+str(int(re.findall(r"\?start=[\d]+",url)[-1])[7:]+50)
+        except:
+            str_id = re.findall(r"_\d+",url)[-1][1:]+"?start=50"
+        str_id = str_id.replace("?","question__mark").replace("=","equals__sign")
+        current_view = {"id":"view"+str_id,
+                        "hash_id":"#view"+str_id,
+                        "name":"More",
+                        "text_pos_height":calculate_text_pos_height(""),
+                        "image":"/static/next.png",
+                        "button_height": person_move,
+                        "button_pos":' '.join([pos_x,button_height,pos_y]),
+                        "button_rot":' '.join(["0",str(-1*(cur_theta+unit_theta+50/2)),"0"]),
+                        "image_pos":' '.join(["0",image_height,"0"]),
+                        "theta":theta,
+                        "level":str(current_level+1),
+                        "is_stack":True,
+                        "sort_index":"9999999"}
+        connections[cur_sid].session['current_views'].append(current_view)
+
     connections[cur_sid].session['current_views'] = \
             sorted(connections[cur_sid].session['current_views'], key=lambda item:item['sort_index'], reverse=False)
     return True
@@ -270,8 +349,8 @@ class ViveChecker(threading.Thread):
 
 def receive_sent_views(data):
     global connections
-    viewpath = data
-    cleaned_id = int(viewpath[4:])
+    viewpath = data.replace("question__mark","?").replace("equals__sign","=")
+    cleaned_id = viewpath[4:]
     connections[request.sid].session['id'] = cleaned_id
     connections[request.sid].session['json_feed']=url_from_id(cleaned_id)
     connections[request.sid].session['current_views']=[]
@@ -291,26 +370,23 @@ def on_button_click(send_view):
 
 @socketio.on('go_back')
 def go_back():
-    global connections
-    cur_sid = request.sid
-    try:
-        connections[cur_sid].session['previous_id'] = connections[cur_sid].session['url_container'].pop()
-    except:
-        connections[cur_sid].session['url_container'] = URLContainer()
-        connections[cur_sid].session['previous_id'] = connections[cur_sid].session['url_container'].pop()
-    return receive_sent_views(connections[cur_sid].session['previous_id'])
+    return receive_sent_views(connections[request.sid].session['url_container'].pop())
 
 @socketio.on('connect')
 def connect_and_send_views():
     global thread, connections
     connections[request.sid] = Connection(request.sid)
     if not thread.isAlive():
-        print("starting vive checker")
+        print("Starting heartbeat thread...")
         thread = ViveChecker()
         thread.start()
     connections[request.sid].session['previous_id']='view0'
     connections[request.sid].session['url_container'] = URLContainer()
     receive_sent_views('view0')
+
+@socketio.on('heartbeat')
+def heartbeat():
+    return
 
 @socketio.on('disconnect')
 def disconnect():
@@ -318,7 +394,7 @@ def disconnect():
         del connections[request.sid]
     except KeyError:
         print("ConnectionWarn: Deleting connection that never exsisted")
-    print("Client disconnected")
+    print("Client "+str(request.sid)+" disconnected")
 
 @app.route('/')
 def main():
@@ -327,4 +403,4 @@ def main():
 if __name__=='__main__':
     port = int(os.environ.get('PORT', 5000))
     print("Port: ",port)
-    socketio.run(app, host='0.0.0.0',port=port, debug=True)
+    socketio.run(app, host='0.0.0.0',port=port, debug=True, logger=False)
