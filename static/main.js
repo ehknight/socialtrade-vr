@@ -2,7 +2,26 @@ $(document).ready(function () {
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     window.socket = socket;
     var numbers_received = [];
-    $("#backbutton").on('click', function () { socket.emit('go_back') });
+    $("#backbutton").on('click', function () {
+        $.playSound("/static/back")
+        var back_animation_1 = document.createElement("a-animation");
+        back_animation_1.setAttribute("attribute", "scale");
+        back_animation_1.setAttribute("from", "0.5 0.5 0.5")
+        back_animation_1.setAttribute("to", "1 1 1");
+        back_animation_1.setAttribute("dur", "200")
+        back_animation_1.setAttribute("repeat", "0");
+        $("#backbutton").append(back_animation_1)
+
+        var back_animation_2 = document.createElement("a-animation");
+        back_animation_2.setAttribute("delay", "200")
+        back_animation_2.setAttribute("attribute", "scale");
+        back_animation_2.setAttribute("from", "1 1 1");
+        back_animation_2.setAttribute("to", "0.5 0.5 0.5");
+        back_animation_2.setAttribute("dur", "200")
+        back_animation_2.setAttribute("repeat", "0");
+        $("#backbutton").append(back_animation_2);
+        socket.emit('go_back');
+    });
     socket.on('check_vive_connected', function () {
         socket.emit('heartbeat');
     })

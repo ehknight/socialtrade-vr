@@ -89,6 +89,11 @@ def button_click_mp3():
 @app.route('/static/whoosh.mp3')
 def whooshmp3():
     return send_from_directory('static','whoosh.mp3')
+
+@app.route('/static/back.mp3')
+def backmp3():
+    return send_from_directory('static','back.mp3')
+
 @app.route('/futura.fnt')
 def futura():
     return send_from_directory('static','futura.fnt')
