@@ -410,6 +410,18 @@ def main():
 def backgroundjpg():
     return send_from_directory('static','background.jpg')
 
+@app.route('/font-awesome.min.css')
+def fontawesome():
+    return send_from_directory('static','font-awesome.min.css')
+
+@app.route('/bootstrap4.css')
+def bootstrap4css():
+    return send_from_directory('static','bootstrap4.css')
+
+@app.route('/bootstrap4.min.js')
+def bootstrap4js():
+    return send_from_directory('static','bootstrap4.min.js')
+
 @app.route('/landing-style.css')
 def landing_style():
     return send_from_directory('static','landing-style.css')
