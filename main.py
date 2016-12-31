@@ -430,6 +430,10 @@ def landing_style():
 def landing_main():
     return send_from_directory('static','landing-main.js')
 
+@app.route('/fonts/<path>')
+def fontawesome_font(path):
+    return send_from_directory('static/fonts',path)
+
 @app.route('/')
 def landing_page():
     return render_template('landing_page.html')
