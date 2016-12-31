@@ -402,11 +402,27 @@ def disconnect():
         print("ConnectionWarn: Deleting connection that never exsisted")
     print("Client "+str(request.sid)+" disconnected")
 
-@app.route('/')
+@app.route('/go')
 def main():
     return render_template('index.html')
+
+@app.route('/background.jpg')
+def backgroundjpg():
+    return send_from_directory('static','background.jpg')
+
+@app.route('/landing-style.css')
+def landing_style():
+    return send_from_directory('static','landing-style.css')
+
+@app.route('/landing-main.js')
+def landing_main():
+    return send_from_directory('static','landing-main.js')
+
+@app.route('/')
+def landing_page():
+    return render_template('landing_page.html')
 
 if __name__=='__main__':
     port = int(os.environ.get('PORT', 5000))
     print("Port: ",port)
-    socketio.run(app, host='0.0.0.0',port=port, debug=True, logger=False)
+    socketio.run(app, host='0.0.0.0',port=port)

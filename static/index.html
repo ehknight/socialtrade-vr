@@ -1,0 +1,114 @@
+<html>
+
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no,user-scalable=no,maximum-scale=1">
+  <title>SocialTrade VR</title>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+  <script src="/static/aframe.min.js"></script>
+  <!-- TODO: Move all rawgits to cdn.rawgit !-->
+  <script src="https://rawgit.com/bryik/aframe-bmfont-text-component/master/dist/aframe-bmfont-text-component.min.js"></script>
+  <script src="https://cdn.rawgit.com/donmccurdy/aframe-extras/v3.1.0/dist/aframe-extras.min.js"></script>
+  <script src="https://rawgit.com/ngokevin/aframe-animation-component/master/dist/aframe-animation-component.min.js"></script>
+  <script src="https://rawgit.com/bryik/aframe-vive-cursor-component/master/dist/aframe-vive-cursor-component.min.js"></script> 
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+  <script>
+    AFRAME.registerComponent("move",{
+    schema : {
+      target : { type : "selector"},
+      position : {type : "string"}
+    },
+    init : function(){
+      this.el.addEventListener("click",function(){
+                var animation = document.createElement("a-animation");
+                animation.setAttribute("attribute","position");
+                animation.setAttribute("to",this.data.position);
+                animation.setAttribute("dur","1000");
+                animation.setAttribute("repeat","0");
+                this.data.target.appendChild(animation);
+      }.bind(this));
+    }
+    });
+  </script>
+</head>
+
+<body>
+  <a-scene debug id="scene">
+    <a-assets>
+      <img id="sky" src="/static/sky.png">
+      <img id="ground" src="/static/sand.jpg">
+      <img id="back-button" src="/static/back-button.jpg">
+    </a-assets>
+    <script>
+      if (!AFRAME.utils.device.checkHeadsetConnected() || AFRAME.utils.device.isMobile()) {
+        $("#scene").load("/gear-controls.html") // either desktop or mobile
+      }
+      if (!AFRAME.utils.device.isMobile() && AFRAME.utils.device.checkHeadsetConnected()) {
+        $("#scene").load("/vive-controls.html") // if oculus rift or vive
+      }
+    </script>
+    <a-sky src="#sky" position="0 -200 0"></a-sky>
+    <a-grid></a-grid>
+
+    <a-light type="ambient" color="#ccc"></a-light>
+    <a-light color="#ddf" distance="100" intensity="0.4" type="point"></a-light>
+    <a-light color="#ddf" position="3 10 -10" distance="50" intensity="0.4" type="point"></a-light>
+    <a-sphere id="backbutton" src="#back-button" radius="1" position=" 0 0.47 0" rotation="-79.6 -8.02 -13.7"></a-sphere>
+    <script>
+      $(document).ready(function(){
+        //connect to the socket server.
+        // $("#scene").append("\<script\>var socket = io.connect('http://' + document.domain + ':' + location.port);\<\/script\>")
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        window.socket = socket;
+        var numbers_received = [];
+        console.log("BEGAN!!!!")
+        socket.on('receive_views', function(msg) {
+          $("#backbutton").on('click', function() {socket.emit('go_back')})
+          console.log("preparing to receive views!")
+          try{
+            $("#currentview").remove()
+          } catch(err) {
+            console.log(err)
+          }
+          console.log(msg);
+          try {
+            var animation = document.createElement("a-animation");
+            animation.setAttribute("attribute","position");
+            animation.setAttribute("to","0 -1 0");
+            animation.setAttribute("dur","2000");
+            animation.setAttribute("repeat","0");
+            animation.setAttribute("animationend",$("#view_box").remove())
+            $("#view_box").append(animation)
+          } catch(err) {
+            console.log(err)
+          }
+          total_html = ""
+          for (var i = 0; i<msg.length; i++) {
+            var view = msg[i]
+            var curved_image_html="<a-curvedimage id='"+view.id+"img' src='"+view.image+"' position='"+view.image_pos+"' height='6' radius='10' theta-length='50' rotation='"+view.theta+"'> </a-curvedimage>"
+            var button_html = "<a-entity id='"+view.id+"button' geometry='primitive:box' rotation='"+view.button_rot+"' material='color:white' scale='1 2 7' position='"+view.button_pos+"' move='target:#user;position:0 "+view.button_height+" 0'>"
+            var text_html = "<a-entity bmfont-text='text: "+view.name+"; fnt:/futura.fnt; fntImage:/futura.png; width:800; lineHeight:60; align:center; color:black;' scale='0.21 0.72 1.00' position='-0.51 "+view.text_pos_height+" -0.42' rotation='0 270 0'> </a-entity>"
+            var closing_button_html = "</a-entity>"
+            var on_click_js = "\<script id='"+view.id+"script'\>"+
+                              "document.querySelector('"+view.hash_id+"button').addEventListener('click', function(){"+
+                              "if ("+view.is_stack+") {" +
+                              "document.querySelector('"+view.hash_id+"button').addEventListener('click', function() {"+
+                              "console.log('i have been clicked!');"+
+                              "window.socket.emit\('send_view', \{data\: '"+view.id+"'\}\);\}\);"+
+                              "return;\}\}\);"+
+                              "\<\/script\>"
+            var complete_html = curved_image_html+button_html+text_html+closing_button_html+on_click_js
+            total_html = total_html+complete_html
+          }
+          $("#scene").append("<a-box id='view_box' visible='true'><a-animation attribute='position' from='0 20 0' to='0 0 0' dur='2000'></a-animation>"+total_html+"</a-box>")
+
+        });
+      });
+    </script> 
+    <div class="added"></div>
+    </a-scene>
+  <body>
+
+</html>

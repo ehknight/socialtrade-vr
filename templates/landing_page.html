@@ -1,0 +1,134 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to SocialTrade VR</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"> </script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" integrity="sha384-AysaV+vQoT3kOAXZkl02PThvDr8HYKPZhNT5h/CXfBThSRXQ6jW5DO2ekP5ViFdi"
+        crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/js/bootstrap.min.js" integrity="sha384-BLiI7JTZm+JWlgKa0M0kGRpJbF2J8q+qreVrKBC47e3K6BW78kGLrCkeRX6I9RoK"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/landing-style.css">
+    <script src="/landing-main.js"></script>
+</head>
+
+<body>
+    <div class="site-wrapper">
+        <div class="site-wrapper-inner">
+            <div class="cover-container">
+                <div class="masthead clearfix">
+                    <div class="inner">
+                        <ul class="nav masthead-nav">
+                            <li>
+                                <button type="button" class="btn btn-success btn-small" data-toggle="modal" data-target="#about">About  <i class="fa fa-address-card-o" aria-hidden="true"></i></button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="inner cover">
+                    <h1 class="cover-heading">SocialTrade VR</h1>
+                    <p class="lead">
+                        <button type="button" class="btn btn-secondary btn-xlarge" data-toggle="modal" data-target="#howto">
+                            How To <i class="fa fa-question-circle-o" aria-hidden="true"></i>
+                        </button>
+                        <a class="btn btn-xlarge btn-primary" href="/go">
+                            Enter VR <i class="fa fa-simplybuilt fa-flip-vertical" aria-hidden="true"></i>
+                        </a>
+                    </p>
+                </div>
+                <!-- How-to Modal -->
+                <div class="modal" id="howto" tabindex="-1" role="dialog" aria-labelledby="howtoLabel1" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h4 class="body-text modal-title" id="howtoLabel1">How to use SocialTrade VR</h4>
+                            </div>
+                            <div class="modal-body body-text">
+                                <div class="modal-header">
+                                    Welcome!
+                                </div>
+                                <p>
+                                    Hi, thanks for checking out SocialTradeVR. This should give you all the info you need to get started. Please also read the
+                                    platform notes for whatever device you're using.
+                                </p>
+                                <p>
+                                    First thing, patience is key! There are a lot of images and assets that need to load. As VR and WebVR are both new, if something
+                                    goes wrong, please reload.
+                                </p>
+                                <p>
+                                    SocialTradeVR has the same architecture as SocialTrade itself. The first two levels are organizational groups which allow
+                                    you to "drill down" into different stacks. You do this by clicking the white buttons
+                                    below each image. On the third stack, click each button to jump to that level. On the
+                                    highest level, there is a green arrow with a "More" button. Click that for more images
+                                    to load.
+                                </p>
+                                <div class="modal-header">
+                                    Platform notes
+                                </div>
+                                <p>
+                                    <b>PC: </b> You're good to go! Close this box and hit "Enter VR". For fullscreen, hit
+                                    the bottom-right button that looks like VR goggles. You can use the arrow keys to move.
+                                    Use the mouse to look around.
+                                </p>
+                                <p>
+                                    <b>iPhone: </b> If you're on Safari on iPhone, please download Chrome from the App Store,
+                                    then take a look at the Mobile section on this page.
+                                </p>
+                                <p>
+                                    <b>Mobile: </b> Tilt your phone around to look around. If you have VR goggles like Google
+                                    Cardboard, put them on and press the "VR" button in the bottom-right corner of the screen.
+                                    Looking at a white button for long enough is the same as a click.
+                                </p>
+                                <p>
+                                    <b>HTC Vive: </b> Make sure SteamVR is running and your headset is being tracked. Because
+                                    current browsers don't yet support the controllers, download a development build <a href="https://drive.google.com/drive/folders/0BzudLt22BqGRbHdGOTdiaTBkZXM">here</a>.
+                                    Extract the file and go to Chrome-bin, then launch "chrome.exe". Naviagte back to this
+                                    site. Hit "Enter VR", and click the goggles in the bottom-right corner. Check the HTC
+                                    Vive goggles. If something is going wrong, please reload.
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- About modal -->
+                <div class="modal fade" id="about" tabindex="-1" role="dialog" aria-labelledby="aboutLabel" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h4 class="modal-title" id="aboutLabel">About</h4>
+                            </div>
+                            <div class="modal-body body-text">
+                                <p>
+                                    <i class="fa fa-lightbulb-o"></i>: Tim Knight (<a class="body-text" href="mailto:tim@timknight.com">tim@timknight.com</a>)
+                                </p>
+                                <p>
+                                    <i class="fa fa-code"></i>: <a class="body-text" href="https://github.com/hyperdo">github.com/hyperdo</a>
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mastfoot">
+                    <p> © SocialTrade Corp., 2016 </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
