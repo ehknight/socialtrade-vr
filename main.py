@@ -82,17 +82,17 @@ def next_img():
 def backbutton():
     return send_from_directory('static','back-button.jpg')
 
-@app.route('/static/button_click.mp3')
+@app.route('/static/button_click.ogg')
 def button_click_mp3():
-    return send_from_directory('static','button_press.mp3')
+    return send_from_directory('static','button_press.ogg')
 
-@app.route('/static/whoosh.mp3')
+@app.route('/static/whoosh.ogg')
 def whooshmp3():
-    return send_from_directory('static','whoosh.mp3')
+    return send_from_directory('static','whoosh.ogg')
 
-@app.route('/static/back.mp3')
+@app.route('/static/back.ogg')
 def backmp3():
-    return send_from_directory('static','back.mp3')
+    return send_from_directory('static','back.ogg')
 
 @app.route('/futura.fnt')
 def futura():
