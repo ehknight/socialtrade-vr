@@ -315,9 +315,10 @@ def parse_json(url):
         image_height = str((3/4)+9.25*current_level+height_offset)
         button_height = str(1/2+5+9.25*(current_level-1)+height_offset)
         person_move = str(2.2+1/2+5+9.25*(current_level-1)+height_offset)
+        print(url)
         try:
-            str_id = re.findall(r"_\d+",url)[-1][1:]+"?start="+str(int(re.findall(r"\?start=[\d]+",url)[-1])[7:]+50)
-        except:
+            str_id = re.findall(r"_\d+",url)[-1][1:]+"?start="+str(int(re.findall(r"\?start=[\d]+",url)[-1][7:])+50)
+        except IndexError:
             str_id = re.findall(r"_\d+",url)[-1][1:]+"?start=50"
         str_id = str_id.replace("?","question__mark").replace("=","equals__sign")
         current_view = {"id":"view"+str_id,
