@@ -18,7 +18,10 @@ monkey.patch_all()
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-app.secret_key='pasta_elephant_green_leaf_shoe'
+with open("secret-key.txt") as f:
+    secret_key = f.read()
+
+app.secret_key = secret_key
 app.config['MAX_FEEDS']=7   
 app.config['IMAGE_HEIGHT']=7
 thread = threading.Thread()
