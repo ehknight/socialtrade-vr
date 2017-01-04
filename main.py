@@ -191,7 +191,6 @@ class URLContainer(object):
             self.urls.append(to_append)
     
     def pop(self):
-        print(self.urls)
         try:
             del self.urls[-1]
             to_pop = self.urls[-1]
@@ -212,7 +211,6 @@ class URLContainer(object):
 
 def url_from_id(id, stack=True):
     try:
-        print("trying!")
         if "?" not in id:
             raise ValueError
         stack_id, page_start = str(id).split("?")
@@ -224,9 +222,6 @@ def url_from_id(id, stack=True):
             return 'http://slopeofhope.com/socialtrade/app/tagged-items/stack_'+str(id)+'.json'
 
 def parse_json(url):
-    print("vvvvvvvvvvvvvvvvv")
-    print(url)
-    print("^^^^^^^^^^^^^^^^^")
     global connections
     is_stack = True
     cur_sid = request.sid
@@ -318,7 +313,6 @@ def parse_json(url):
         image_height = str((3/4)+9.25*current_level+height_offset)
         button_height = str(1/2+5+9.25*(current_level-1)+height_offset)
         person_move = str(2.2+1/2+5+9.25*(current_level-1)+height_offset)
-        print(url)
         try:
             str_id = re.findall(r"_\d+",url)[-1][1:]+"?start="+str(int(re.findall(r"\?start=[\d]+",url)[-1][7:])+50)
         except IndexError:
@@ -384,6 +378,8 @@ def go_back():
 @socketio.on('connect')
 def connect_and_send_views():
     global thread, connections
+    print("New client connected!")
+    print("Currently "+str(len(connections)+1)+" connections.")
     connections[request.sid] = Connection(request.sid)
     if not thread.isAlive():
         print("Starting heartbeat thread...")
