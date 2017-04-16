@@ -1,3 +1,10 @@
+"""
+Below is the complete server code. In my written response, I only referenced the server code.
+Because my program spans many files, I was unsure of how to include them.
+However, if you wish to see the complete code, please visit
+https://github.com/hyperdo/socialtrade-vr/
+"""
+
 from flask import Flask, render_template, request, send_from_directory
 from flask_socketio import SocketIO, emit
 
@@ -38,6 +45,8 @@ class Connection(object):
         socketio.emit(event, data, room=self.sid)
 
 # CORS handling from http://coalkids.github.io/flask-cors.html
+# Credit to Christophe Serafin
+# BEGIN CORS HANDLING CODE
 @app.before_request
 def option_autoreply():
     if request.method == 'OPTIONS':
@@ -59,6 +68,7 @@ def set_allow_origin(resp):
     if request.method != 'OPTIONS' and 'Origin' in request.headers:
         h['Access-Control-Allow-Origin'] = request.headers['Origin']
     return resp
+# END CORS HANDLING CODE
 
 def range(x, y, jump):
   while x < y:
