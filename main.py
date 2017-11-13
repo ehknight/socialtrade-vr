@@ -448,6 +448,6 @@ def landing_page():
     return render_template('landing_page.html')
 
 if __name__=='__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = 80 #int(os.environ.get('PORT', 5000))
     print("Port: ",port)
     socketio.run(app, host='0.0.0.0',port=port)
